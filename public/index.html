@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Churn Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #121212; /* Dark background */
+        color: #e0e0e0; /* Light text color */
+      }
+      h1 {
+        font-size: 24px;
+        color: #ffffff; /* White title */
+        margin-bottom: 10px;
+      }
+      .repo-name {
+        font-size: 18px;
+        color: #b0b0b0; /* Lighter gray for repo name */
+        margin-bottom: 20px;
+      }
+      .chip {
+        display: inline-block;
+        padding: 8px 12px;
+        margin: 5px;
+        border-radius: 16px;
+        background-color: #ffccbc; /* Peach background for chips */
+        color: #1e1e1e; /* Darker brown for chip text */
+        font-size: 14px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+      }
+      #summary {
+        margin-top: 20px;
+        font-size: 16px;
+        background-color: #1e1e1e; /* Dark background for summary */
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+      }
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #333; /* Divider line */
+      }
+      .summary-item:last-child {
+        border-bottom: none; /* Remove divider for the last item */
+      }
+      .summary-item strong {
+        color: #ffccbc; /* Peach color for emphasis */
+      }
+      .summary-item span {
+        color: #ffccbc; /* Peach color for values */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Churn Analysis</h1>
+    <div class="repo-name" id="repoName"></div>
+    <!-- Placeholder for repo name -->
+    <div id="chips"></div>
+    <canvas id="churnChart" width="400" height="200"></canvas>
+    <div id="summary"></div>
+    <script>
+      async function fetchChurnData() {
+        const response = await fetch("/api/churn");
+        return await response.json();
+      }
+
+      async function renderChart() {
+        const churnData = await fetchChurnData();
+        const ctx = document.getElementById("churnChart").getContext("2d");
+
+        // Set the repository name
+        document.getElementById(
+          "repoName"
+        ).innerText = `Repository: ${churnData.repoName}`;
+
+        // Create chips for filter and period
+        const chipsContainer = document.getElementById("chips");
+        chipsContainer.innerHTML = `
+          <span class="chip">Filter: <strong>${churnData.branchPattern}</strong></span>
+          <span class="chip">Period: from <strong>${churnData.startDate}</strong> to <strong>${churnData.endDate}</strong></span>
+        `;
+
+        const churnChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Added", "Deleted", "Modified"],
+            datasets: [
+              {
+                label: "Lines of Code",
+                data: [
+                  churnData.totalAdded,
+                  churnData.totalDeleted,
+                  churnData.totalModified,
+                ],
+                backgroundColor: [
+                  "rgba(255, 153, 102, 0.7)",
+                  "rgba(255, 99, 132, 0.7)",
+                  "rgba(255, 206, 86, 0.7)",
+                ],
+                borderColor: [
+                  "rgba(255, 153, 102, 1)",
+                  "rgba(255, 99, 132, 1)",
+                  "rgba(255, 206, 86, 1)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "#333", // Dark grid lines
+                },
+                ticks: {
+                  color: "#e0e0e0", // Light tick labels
+                },
+              },
+              x: {
+                grid: {
+                  color: "#333", // Dark grid lines
+                },
+                ticks: {
+                  color: "#e0e0e0", // Light tick labels
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#e0e0e0", // Light legend text
+                },
+              },
+            },
+          },
+        });
+
+        // Create summary text
+        const summary = `
+          <div class="summary-item"><strong>Total Lines Added:</strong> <span>${churnData.totalAdded}</span></div>
+          <div class="summary-item"><strong>Total Lines Deleted:</strong> <span>${churnData.totalDeleted}</span></div>
+          <div class="summary-item"><strong>Total Lines Modified:</strong> <span>${churnData.totalModified}</span></div>
+          <div class="summary-item"><strong>Total Files Changed:</strong> <span>${churnData.totalFilesChanged}</span></div>
+          <div class="summary-item"><strong>Total Churn:</strong> <span>${churnData.churn}</span></div>
+          <div class="summary-item"><strong>Churn Rate Percentage:</strong> <span>${churnData.churnRatePercentage}%</span></div>
+          <div class="summary-item"><strong>Average Daily Churn:</strong> <span>${churnData.averageDailyChurn}</span></div>
+          <div class="summary-item"><strong>Total Commits:</strong> <span>${churnData.commitCount}</span></div>
+        `;
+        document.getElementById("summary").innerHTML = summary;
+      }
+
+      renderChart();
+    </script>
+  </body>
+</html>
