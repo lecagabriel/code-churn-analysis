@@ -3,6 +3,7 @@ const { execSync } = require("child_process");
 const simpleGit = require("simple-git");
 const path = require("path");
 const fs = require("fs");
+const chalk = require("chalk");
 
 const app = express();
 const PORT = 4000;
@@ -136,18 +137,30 @@ if (showGraph) {
   // Run the analysis and display results in the terminal
   analyzeRepo(repoUrl)
     .then((churnData) => {
-      console.log(`Filter Used: ${churnData.branchPattern}`);
+      console.log(chalk.bold(chalk.blue("Churn Analysis Results:")));
+      console.log(chalk.white(`Filter Used: ${churnData.branchPattern}`));
       console.log(
-        `Period: from ${churnData.startDate} to ${churnData.endDate}`
+        chalk.white(
+          `Period: from ${churnData.startDate} to ${churnData.endDate}`
+        )
       );
-      console.log(`Total Lines Added: ${churnData.totalAdded}`);
-      console.log(`Total Lines Deleted: ${churnData.totalDeleted}`);
-      console.log(`Total Lines Modified: ${churnData.totalModified}`);
-      console.log(`Total Files Changed: ${churnData.totalFilesChanged}`);
-      console.log(`Total Churn: ${churnData.churn}`);
-      console.log(`Churn Rate Percentage: ${churnData.churnRatePercentage}%`);
-      console.log(`Average Daily Churn: ${churnData.averageDailyChurn}`);
-      console.log(`Total Commits: ${churnData.commitCount}`);
+      console.log(); // Add an empty line for spacing
+      console.log(chalk.yellow(`Total Lines Added: ${churnData.totalAdded}`));
+      console.log(chalk.red(`Total Lines Deleted: ${churnData.totalDeleted}`));
+      console.log(
+        chalk.cyan(`Total Lines Modified: ${churnData.totalModified}`)
+      );
+      console.log(
+        chalk.magenta(`Total Files Changed: ${churnData.totalFilesChanged}`)
+      );
+      console.log(chalk.white(`Total Churn: ${churnData.churn}`));
+      console.log(
+        chalk.green(`Churn Rate Percentage: ${churnData.churnRatePercentage}%`)
+      );
+      console.log(
+        chalk.green(`Average Daily Churn: ${churnData.averageDailyChurn}`)
+      );
+      console.log(chalk.green(`Total Commits: ${churnData.commitCount}`));
     })
-    .catch((err) => console.error(err));
+    .catch((err) => console.error(chalk.red("Error:"), err));
 }
